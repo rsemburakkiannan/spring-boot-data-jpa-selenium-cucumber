@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 
 import io.cucumber.java.Scenario;
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
@@ -23,6 +24,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -31,13 +33,9 @@ import io.github.bonigarcia.wdm.WebDriverManager;
  * @author Raghu Semburakkiannan
  */
 
+@Slf4j
 @Component
 public class Hook {
-
-    /**
-     * Logger
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(Hook.class);
 
     @Value("${selenium.browser}")
     private String browser;
@@ -61,18 +59,18 @@ public class Hook {
         // Shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (isDriverLoaded()) {
-                LOGGER.info("Shutdown signal detected: Closing opened drivers");
+                log.info("Shutdown signal detected: Closing opened drivers");
                 closeDriver();
-                LOGGER.info("Opened drivers closed");
+                log.info("Opened drivers closed");
             }
         }));
-        // --
     }
 
     private boolean isDriverLoaded() {
         return driver != null;
     }
 
+    @Bean
     public WebDriver getDriver() {
         if (isEmpty(driver)) {
             initialiseDriver();
@@ -143,7 +141,7 @@ public class Hook {
             try {
                 driver = new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"), chromeOptions);
             } catch (MalformedURLException e) {
-                LOGGER.error("Error", e);
+                log.error("Error", e);
             }
         } else {
             driver = new ChromeDriver(chromeOptions);
